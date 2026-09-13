@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="theme-color" content="#b71c1c" />
+  <title>大华门店</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icon.svg" />
+  <style>
+    :root {
+      --bg: #0f1113;
+      --card: #1a1e22;
+      --line: #2a3036;
+      --text: #f3f4f6;
+      --muted: #9aa3ad;
+      --red: #d32f2f;
+      --red2: #b71c1c;
+      --ranch: #c62828;
+      --m168: #1565c0;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif; }
+    body { padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom); }
+    header {
+      position: sticky; top: 0; z-index: 10;
+      background: linear-gradient(180deg, #b71c1c, #8e1212);
+      padding: 14px 16px 12px;
+    }
+    h1 { margin: 0; font-size: 20px; font-weight: 700; }
+    .sub { margin-top: 4px; font-size: 12px; opacity: .85; }
+    .toolbar { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+    button, select {
+      border: 0; border-radius: 999px; padding: 8px 12px; font-size: 13px;
+      background: rgba(255,255,255,.15); color: #fff;
+    }
+    button.active { background: #fff; color: #b71c1c; font-weight: 700; }
+    #status { padding: 10px 16px; font-size: 13px; color: var(--muted); }
+    #list { padding: 0 12px 24px; display: flex; flex-direction: column; gap: 10px; }
+    .card {
+      background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+      padding: 14px; display: block; text-align: left; color: inherit; width: 100%;
+    }
+    .row1 { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+    .name { font-size: 16px; font-weight: 700; }
+    .dist { font-size: 15px; font-weight: 700; color: #ffd54f; white-space: nowrap; }
+    .brand {
+      display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px;
+      border-radius: 999px; margin-bottom: 6px;
+    }
+    .brand.ranch { background: rgba(198,40,40,.2); color: #ef9a9a; }
+    .brand.m168 { background: rgba(21,101,192,.2); color: #90caf9; }
+    .addr, .phone { margin-top: 4px; font-size: 13px; color: var(--muted); }
+    .sheet-bg {
+      position: fixed; inset: 0; background: rgba(0,0,0,.55); display: none;
+      align-items: flex-end; z-index: 20;
+    }
+    .sheet-bg.show { display: flex; }
+    .sheet {
+      background: #22272c; width: 100%; border-radius: 18px 18px 0 0;
+      padding: 16px 16px calc(16px + env(safe-area-inset-bottom));
+    }
+    .sheet h3 { margin: 0 0 6px; font-size: 17px; }
+    .sheet p { margin: 0 0 14px; color: var(--muted); font-size: 13px; }
+    .sheet a, .sheet button.act {
+      display: block; width: 100%; text-align: center; text-decoration: none;
+      background: #2e353c; color: #fff; border-radius: 12px; padding: 13px;
+      margin-bottom: 8px; font-size: 16px; font-weight: 600;
+    }
+    .sheet a.primary { background: var(--red); }
+    .hint { font-size: 12px; color: var(--muted); padding: 0 16px 20px; line-height: 1.5; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>大华门店</h1>
+    <div class="sub">99 Ranch · 168 Market · 按距离排序</div>
+    <div class="toolbar">
+      <button id="btnLoc" type="button">定位并排序</button>
+      <button class="filter active" data-f="all" type="button">全部</button>
+      <button class="filter" data-f="99 Ranch" type="button">99 Ranch</button>
+      <button class="filter" data-f="168 Market" type="button">168</button>
+      <button id="btnUnit" type="button">英里</button>
+    </div>
+  </header>
+  <div id="status">正在加载门店…</div>
+  <div id="list"></div>
+  <p class="hint">第一次请点「定位并排序」，并允许 Safari 使用位置。点一家店可选 Apple 地图或 Google 地图导航。可把本页添加到主屏幕，用起来像 App。</p>
+
+  <div class="sheet-bg" id="sheet">
+    <div class="sheet">
+      <h3 id="sName"></h3>
+      <p id="sAddr"></p>
+      <a class="primary" id="navApple" href="#" target="_blank" rel="noopener">用 Apple 地图导航</a>
+      <a id="navGoogle" href="#" target="_blank" rel="noopener">用 Google 地图导航</a>
+      <a id="callPhone" href="#">打电话</a>
+      <button class="act" id="sClose" type="button">取消</button>
+    </div>
+  </div>
+
+  <script>
+    const $ = id => document.getElementById(id);
+    let stores = [];
+    let filter = "all";
+    let unit = localStorage.getItem("unit") || "mi";
+    let me = null;
+
+    $("btnUnit").textContent = unit === "mi" ? "英里" : "公里";
+
+    function haversine(lat1, lon1, lat2, lon2) {
+      const R = 6371;
+      const toR = d => d * Math.PI / 180;
+      const dLat = toR(lat2 - lat1);
+      const dLon = toR(lon2 - lon1);
+      const a = Math.sin(dLat/2)**2 + Math.cos(toR(lat1))*Math.cos(toR(lat2))*Math.sin(dLon/2)**2;
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    }
+
+    function fmtDist(km) {
+      if (km == null) return "";
+      if (unit === "mi") return (km * 0.621371).toFixed(1) + " 英里";
+      return km.toFixed(1) + " 公里";
+    }
+
+    function render() {
+      let list = stores.slice();
+      if (filter !== "all") list = list.filter(s => s.brand === filter);
+      if (me) {
+        list.forEach(s => { s._km = haversine(me.lat, me.lng, s.lat, s.lng); });
+        list.sort((a,b) => a._km - b._km);
+      } else {
+        list.sort((a,b) => a.name.localeCompare(b.name, "zh"));
+      }
+      $("list").innerHTML = list.map(s => `
+        <button class="card" data-id="${s.id}">
+          <span class="brand ${s.brand === "99 Ranch" ? "ranch" : "m168"}">${s.brand}</span>
+          <div class="row1">
+            <div class="name">${s.name}</div>
+            <div class="dist">${fmtDist(s._km)}</div>
+          </div>
+          <div class="addr">${s.address}</div>
+          <div class="phone">${s.phone}</div>
+        </button>
+      `).join("");
+      $("list").querySelectorAll(".card").forEach(el => {
+        el.onclick = () => openSheet(stores.find(x => x.id === el.dataset.id));
+      });
+    }
+
+    function openSheet(s) {
+      $("sName").textContent = s.brand + " · " + s.name;
+      $("sAddr").textContent = s.address;
+      const q = encodeURIComponent(s.address);
+      $("navApple").href = `https://maps.apple.com/?daddr=${s.lat},${s.lng}&q=${q}`;
+      $("navGoogle").href = `https://www.google.com/maps/dir/?api=1&destination=${s.lat},${s.lng}`;
+      $("callPhone").href = "tel:" + s.phone.replace(/[^\d+]/g, "");
+      $("sheet").classList.add("show");
+    }
+
+    $("sClose").onclick = () => $("sheet").classList.remove("show");
+    $("sheet").onclick = e => { if (e.target.id === "sheet") $("sheet").classList.remove("show"); };
+
+    document.querySelectorAll(".filter").forEach(btn => {
+      btn.onclick = () => {
+        filter = btn.dataset.f;
+        document.querySelectorAll(".filter").forEach(b => b.classList.toggle("active", b === btn));
+        render();
+      };
+    });
+
+    $("btnUnit").onclick = () => {
+      unit = unit === "mi" ? "km" : "mi";
+      localStorage.setItem("unit", unit);
+      $("btnUnit").textContent = unit === "mi" ? "英里" : "公里";
+      render();
+    };
+
+    function locate() {
+      $("status").textContent = "正在获取位置…";
+      if (!navigator.geolocation) {
+        $("status").textContent = "这个浏览器不支持定位，已按店名显示。";
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(
+        pos => {
+          me = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+          $("status").textContent = "已按离你从近到远排列 · 共 " + stores.length + " 家";
+          render();
+        },
+        err => {
+          $("status").textContent = "定位未授权或失败，已按店名显示。可再点「定位并排序」。";
+          render();
+        },
+        { enableHighAccuracy: true, timeout: 12000, maximumAge: 30000 }
+      );
+    }
+
+    $("btnLoc").onclick = locate;
+
+    fetch("stores.json")
+      .then(r => r.json())
+      .then(data => {
+        stores = data;
+        $("status").textContent = "已加载 " + stores.length + " 家。点「定位并排序」按远近显示。";
+        render();
+        locate();
+      })
+      .catch(() => { $("status").textContent = "加载门店失败，请检查 stores.json 是否和网页在同一文件夹。"; });
+
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("./sw.js").catch(() => {});
+    }
+  </script>
+</body>
+</html>

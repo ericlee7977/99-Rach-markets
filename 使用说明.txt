@@ -1,0 +1,55 @@
+大华门店（自己用）
+==================
+
+这是一个手机网页：打开后按你的位置由近到远列出 99 Ranch 和 168 Market。
+点一家店，可选 Apple 地图 或 Google 地图导航，也可以打电话。
+
+不需要写代码。把整个 markets 文件夹放到你现有的 GitHub 仓库里即可。
+
+
+一、放到 GitHub（约 3 分钟）
+--------------------------
+1. 电脑打开 https://github.com 登录，进入你已有的仓库。
+2. 点 Add file → Upload files。
+3. 把整个 markets 文件夹拖进去（里面要有 index.html、stores.json 等）。
+4. 点 Commit changes 保存。
+
+二、打开网页
+------------
+地址一般是：
+
+  https://你的用户名.github.io/仓库名/markets/
+
+例如用户名是 zhiwei7977、仓库叫 notes，就是：
+  https://zhiwei7977.github.io/notes/markets/
+
+如果打不开：
+1. 仓库页面点 Settings → Pages
+2. Source 选 Deploy from a branch
+3. Branch 选 main（或 master），文件夹选 / (root)
+4. 保存后等 1 分钟再刷新
+
+注意：定位功能必须用 https 打开，GitHub Pages 自带 https。
+不要用 file:// 在手机里直接打开本地文件，iPhone 往往不给定位。
+
+
+三、加到 iPhone 主屏幕（像 App）
+------------------------------
+1. 用 Safari 打开上面的网址（不要用微信或 Chrome 内置浏览器）。
+2. 点底部分享按钮。
+3. 滑到「添加到主屏幕」。
+4. 第一次打开后点「定位并排序」，选「允许」。
+
+
+四、页面上的按钮
+----------------
+- 定位并排序：按当前位置从近到远
+- 全部 / 99 Ranch / 168：筛选品牌
+- 英里 / 公里：切换距离单位（会记住你的选择）
+- 点某一家：选 Apple 地图、Google 地图，或打电话
+
+
+五、以后要改地址
+----------------
+用记事本打开 stores.json，改 address、phone、lat、lng。
+改完重新上传覆盖 GitHub 上的同一文件即可。
