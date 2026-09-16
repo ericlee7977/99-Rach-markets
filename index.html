@@ -52,6 +52,7 @@
     }
     .brand.ranch { background: rgba(198,40,40,.2); color: #ef9a9a; }
     .brand.m168 { background: rgba(21,101,192,.2); color: #90caf9; }
+    .acct { margin-top: 2px; font-size: 14px; font-weight: 700; letter-spacing: .02em; color: #fff; }
     .addr, .phone { margin-top: 4px; font-size: 13px; color: var(--muted); }
     .sheet-bg {
       position: fixed; inset: 0; background: rgba(0,0,0,.55); display: none;
@@ -137,7 +138,7 @@
         <button class="card" data-id="${s.id}">
           <span class="brand ${s.brand === "99 Ranch" ? "ranch" : "m168"}">${s.brand}</span>
           <div class="row1">
-            <div class="name">${s.name}</div>
+            <div class="name">${s.account ? s.account + " · " : ""}${s.name}</div>
             <div class="dist">${fmtDist(s._km)}</div>
           </div>
           <div class="addr">${s.address}</div>
@@ -150,7 +151,7 @@
     }
 
     function openSheet(s) {
-      $("sName").textContent = s.brand + " · " + s.name;
+      $("sName").textContent = (s.account ? s.account + " · " : "") + s.brand + " · " + s.name;
       $("sAddr").textContent = s.address;
       const q = encodeURIComponent(s.address);
       $("navApple").href = `https://maps.apple.com/?daddr=${s.lat},${s.lng}&q=${q}`;
