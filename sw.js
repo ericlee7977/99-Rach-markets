@@ -1,14 +1,11 @@
-const CACHE = "markets-v1";
-const FILES = ["./","index.html","stores.json","manifest.json","icon.svg"];
-self.addEventListener("install", e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)));
-});
-self.addEventListener("fetch", e => {
-  e.respondWith(
-    caches.match(e.request).then(r => r || fetch(e.request).then(res => {
-      const copy = res.clone();
-      caches.open(CACHE).then(c => c.put(e.request, copy)).catch(()=>{});
-      return res;
-    }).catch(() => caches.match("./index.html")))
-  );
+// Stop using offline cache so store list updates immediately.
+self.addEventListener("install", e => { self.skipWaiting(); });
+self.addEventListener("activate", e => {
+  e.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(keys.map(k => caches.delete(k)));
+    await self.registration.unregister();
+    const clients = await self.clients.matchAll({ type: "window" });
+    clients.forEach(c => c.navigate(c.url));
+  })());
 });

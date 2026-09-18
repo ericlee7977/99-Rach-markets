@@ -200,7 +200,7 @@
 
     $("btnLoc").onclick = locate;
 
-    fetch("stores.json")
+    fetch("stores.json?v=20260918")
       .then(r => r.json())
       .then(data => {
         stores = data;
@@ -211,7 +211,8 @@
       .catch(() => { $("status").textContent = "加载门店失败，请检查 stores.json 是否和网页在同一文件夹。"; });
 
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("./sw.js").catch(() => {});
+      navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => r.unregister()));
+      if (window.caches) caches.keys().then(ks => ks.forEach(k => caches.delete(k)));
     }
   </script>
 </body>
