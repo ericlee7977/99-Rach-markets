@@ -106,8 +106,8 @@
     "account": "4586-1808",
     "address": "19100 Harborgate Way, Torrance, CA 90501",
     "phone": "(323) 515-8899",
-    "lat": 33.8548,
-    "lng": -118.2879
+    "lat": 33.85741,
+    "lng": -118.30283
   },
   {
     "id": "ranch-vannuys",
@@ -292,8 +292,8 @@
     "account": "2751-5801",
     "address": "1421 E Valley Blvd, Alhambra, CA 91801",
     "phone": "(626) 282-5168",
-    "lat": 34.0779,
-    "lng": -118.1128
+    "lat": 34.08011,
+    "lng": -118.10975
   },
   {
     "id": "m168-sg",
@@ -325,7 +325,7 @@
     "account": "2750-1806",
     "address": "17120 Colima Rd, Hacienda Heights, CA 91745",
     "phone": "(626) 839-8168",
-    "lat": 33.9891,
-    "lng": -117.9262
+    "lat": 33.98985,
+    "lng": -117.9359
   }
 ]
